@@ -5,7 +5,6 @@ require('dotenv').config();
 
 const env = process.env.NODE_ENV || 'development';
 if (env !== 'production') {
-  console.log('\n\nnot production\n\n');
   require('babel-core/register');
 }
 require('babel-polyfill');
