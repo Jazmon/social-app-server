@@ -32,8 +32,10 @@
   "homepage": "https://bitbucket.org/Jazmon/social-app-server#readme",
   "dependencies": {
     "babel-core": "^6.14.0",
+    "babel-plugin-transform-es2015-modules-commonjs": "^6.14.0",
     "babel-polyfill": "^6.13.0",
     "babel-preset-es2017": "^6.14.0",
+    "babel-preset-stage-2": "^6.13.0",
     "bluebird": "^3.4.3",
     "body-parser": "^1.15.2",
     "dotenv": "^2.0.0",

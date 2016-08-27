@@ -23,7 +23,7 @@ if (process.env.NODE_ENV !== 'test') app.use(logger('combined'));
 // --------------------------
 // app.use('/api/v1/event', routes);
 
-app.use('/graphql', graphQLHTTP({ schema, pretty: true }));
+app.use('/graphql', graphQLHTTP({ schema, pretty: true, graphiql: true }));
 
 //
 // Error handlers

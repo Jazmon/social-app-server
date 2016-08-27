@@ -9,7 +9,10 @@
     "js": "node"
   },
   "watch": [
-    "src/"
+    "src/",
+    "models/",
+    "bin/",
+    "data/"
   ],
   "env": {
     "NODE_ENV": "development"
