@@ -1,0 +1,29 @@
+#!/usr/bin/env node
+/* eslint-disable global-require */
+
+require('dotenv').config();
+
+const env = process.env.NODE_ENV || 'development';
+if (env !== 'production') {
+  require('babel-core/register');
+}
+require('babel-polyfill');
+const app = env !== 'production'
+  ? require('../src/app')
+  : require('../build/app'); // eslint-disable-line import/no-unresolved
+
+// const models = require('../models');
+
+app.set('port', process.env.PORT || 8000);
+const server = app.listen(app.get('port'), () => {
+  console.log(`Server listening on port ${server.address().port}`);
+});
+
+// models.sequelize.authenticate()
+//   .then(() => models.sequelize.sync()
+//     .then(() => {
+//       const server = app.listen(app.get('port'), () => {
+//         console.log(`Server listening on port ${server.address().port}`);
+//       });
+//     }))
+//   .catch((e) => console.error('Unable to connect to the database:', e));
