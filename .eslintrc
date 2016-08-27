@@ -37,6 +37,7 @@
       "warn",
       "always-multiline"
     ],
+    "no-unused-vars": 1,
     "no-console": 0
   }
 }
