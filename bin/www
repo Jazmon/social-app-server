@@ -15,6 +15,7 @@ const app = env !== 'production'
 const models = require('../models');
 
 app.set('port', process.env.PORT || 8000);
+app.set('env', process.env.NODE_ENV);
 
 models.sequelize.authenticate()
   .then(() => models.sequelize.sync()

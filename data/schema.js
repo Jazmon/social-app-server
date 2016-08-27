@@ -1,4 +1,4 @@
-/* eslint-disable no-use-before-define */
+/* eslint-disable no-use-before-define, no-param-reassign */
 import {
   GraphQLBoolean,
   GraphQLID,
@@ -22,22 +22,41 @@ import {
   toGlobalId,
 } from 'graphql-relay';
 
-import {
-  Post,
-  User,
-  getPost,
-  getPosts,
-  getUser,
-  getViewer,
-} from './database';
+import { resolver } from 'graphql-sequelize';
+// import {
+  // Post,
+  // User,
+  // getPost,
+  // getPosts,
+  // getUser,
+  // getViewer,
+// } from './database';
+
+import { Post, User } from '../models';
 
 const { nodeInterface, nodeField } = nodeDefinitions(
   (globalId) => {
     const { type, id } = fromGlobalId(globalId);
     if (type === 'Post') {
-      return getPost(id);
+      resolver(Post, {
+        before: (options, args) => {
+          options.where = options.where || {};
+          options.where.id = { $in: args.ids };
+          return options;
+        },
+      });
+      // return getPost(id);
     } else if (type === 'User') {
-      return getUser(id);
+      console.log('user resolver');
+      resolver(User, {
+        before: (options, args) => {
+          console.log('user resolver before');
+          options.where = options.where || {};
+          options.where.id = { $in: args.ids };
+          return options;
+        },
+      });
+      // return getUser(id);
     }
     return null;
   },
@@ -53,6 +72,7 @@ const { nodeInterface, nodeField } = nodeDefinitions(
 
 const GraphQLPost = new GraphQLObjectType({
   name: 'Post',
+  description: 'A post a user has posted to be visible on other users walls',
   fields: {
     id: globalIdField('Post'),
     text: {
@@ -67,7 +87,7 @@ const {
   connectionType: PostsConnection,
   edgeType: GraphQLPostEdge,
 } = connectionDefinitions({
-  name: 'POST',
+  name: 'Post',
   nodeType: GraphQLPost,
 });
 
@@ -75,17 +95,33 @@ const GraphQLUser = new GraphQLObjectType({
   name: 'User',
   fields: {
     id: globalIdField('User'),
+    email: {
+      type: GraphQLString,
+      resolve: (obj) => console.log(obj) || obj.email,
+    },
     posts: {
       type: PostsConnection,
       args: {
         ...connectionArgs,
       },
       resolve: (obj, args) =>
-        connectionFromArray(getPosts(), args),
+        connectionFromArray(resolver(Post, {
+          before: (options, args2) => {
+            if (args2.first) {
+              options.order = options.order || [];
+              options.order.push(['created_at', 'ASC']);
+
+              if (args2.first !== 0) {
+                options.limit = args2.first;
+              }
+            }
+            return options;
+          }
+        }), args),
     },
     postCount: {
       type: GraphQLInt,
-      resolve: () => getPosts().length,
+      resolve: resolver(Post).length,
     },
   },
   interfaces: [nodeInterface],
@@ -97,7 +133,9 @@ const Root = new GraphQLObjectType({
   fields: {
     viewer: {
       type: GraphQLUser,
-      resolve: () => getViewer(),
+      resolve: resolver(User, {
+        include: true,
+      }),
     },
   },
 });

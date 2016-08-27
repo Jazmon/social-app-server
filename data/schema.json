@@ -52,6 +52,18 @@
               "deprecationReason": null
             },
             {
+              "name": "email",
+              "description": null,
+              "args": [],
+              "type": {
+                "kind": "SCALAR",
+                "name": "String",
+                "ofType": null
+              },
+              "isDeprecated": false,
+              "deprecationReason": null
+            },
+            {
               "name": "posts",
               "description": null,
               "args": [
@@ -98,7 +110,7 @@
               ],
               "type": {
                 "kind": "OBJECT",
-                "name": "POSTConnection",
+                "name": "PostConnection",
                 "ofType": null
               },
               "isDeprecated": false,
@@ -198,7 +210,7 @@
         },
         {
           "kind": "OBJECT",
-          "name": "POSTConnection",
+          "name": "PostConnection",
           "description": "A connection to a list of items.",
           "fields": [
             {
@@ -226,7 +238,7 @@
                 "name": null,
                 "ofType": {
                   "kind": "OBJECT",
-                  "name": "POSTEdge",
+                  "name": "PostEdge",
                   "ofType": null
                 }
               },
@@ -318,7 +330,7 @@
         },
         {
           "kind": "OBJECT",
-          "name": "POSTEdge",
+          "name": "PostEdge",
           "description": "An edge in a connection.",
           "fields": [
             {
@@ -358,7 +370,7 @@
         {
           "kind": "OBJECT",
           "name": "Post",
-          "description": null,
+          "description": "A post a user has posted to be visible on other users walls",
           "fields": [
             {
               "name": "id",

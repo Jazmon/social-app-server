@@ -5,7 +5,7 @@ import PrettyError from 'pretty-error';
 import graphQLHTTP from 'express-graphql';
 
 import { schema } from '../data/schema';
-
+import { User, Post } from '../models';
 // import routes from './routes';
 
 //
@@ -24,6 +24,24 @@ if (process.env.NODE_ENV !== 'test') app.use(logger('combined'));
 // app.use('/api/v1/event', routes);
 
 app.use('/graphql', graphQLHTTP({ schema, pretty: true, graphiql: true }));
+
+app.get('/createdummy', async(req, res) => {
+  const post = await Post.create({ text: 'hello, world!' });
+
+  const user = User.build({
+    email: 'foo@bar.com',
+    superUser: true,
+    username: 'foobar',
+    // password: 'foobar123',
+    name: 'foo bar',
+  });
+
+  await user.addPost(post);
+
+  user.save()
+    .then(() => res.sendStatus(200))
+    .catch(err => { throw err; });
+});
 
 //
 // Error handlers

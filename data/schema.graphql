@@ -23,6 +23,7 @@ type PageInfo {
   endCursor: String
 }
 
+# A post a user has posted to be visible on other users walls
 type Post implements Node {
   # The ID of an object
   id: ID!
@@ -30,16 +31,16 @@ type Post implements Node {
 }
 
 # A connection to a list of items.
-type POSTConnection {
+type PostConnection {
   # Information to aid in pagination.
   pageInfo: PageInfo!
 
   # A list of edges.
-  edges: [POSTEdge]
+  edges: [PostEdge]
 }
 
 # An edge in a connection.
-type POSTEdge {
+type PostEdge {
   # The item at the end of the edge
   node: Post
 
@@ -54,6 +55,7 @@ type Root {
 type User implements Node {
   # The ID of an object
   id: ID!
-  posts(after: String, first: Int, before: String, last: Int): POSTConnection
+  email: String
+  posts(after: String, first: Int, before: String, last: Int): PostConnection
   postCount: Int
 }
