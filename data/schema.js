@@ -31,55 +31,16 @@ import { resolver } from 'graphql-sequelize';
   // getUser,
   // getViewer,
 // } from './database';
-import { Post, User } from '../models';
+import { Post, User, Comment } from '../models';
 
-const getPosts = async() => {
-  try {
-    const posts = await Post.findAll();
-    const postObjs = posts.map(post => post.get());
 
-    return postObjs;
-  } catch (e) {
-    if (e) throw e;
-  }
-};
-
-const getPost = async(id) => {
-  try {
-    const post = await Post.findById(id);
-    return post.get();
-  } catch (e) {
-    if (e) throw e;
-  }
-};
-
-const getUser = async(id) => {
-  try {
-    const user = await User.findById(id, {
-      attributes: ['id', 'email', 'username', 'name'],
-      include: [{
-        model: Post,
-        as: 'posts',
-        attributes: ['id', 'text'],
-      }],
-    });
-    return user.get();
-  } catch (e) {
-    if (e) throw e;
-  }
-};
-
-// function getPosts() {
-//   Post.findAll()
-//     .then(posts => { // eslint-disable-line arrow-body-style
-//       const postObjs = posts.map(post => post.get());
-//       console.log('postObjs', postObjs);
-//       return postObjs;
-//     })
-//     .catch(err => {
-//       throw err;
-//     });
-// }
+import {
+  getPosts,
+  getPost,
+  getUser,
+  getComment,
+  getComments,
+} from './database';
 
 const { nodeInterface, nodeField } = nodeDefinitions(
   (globalId) => {
@@ -94,16 +55,22 @@ const { nodeInterface, nodeField } = nodeDefinitions(
       });
       // return getPost(id);
     } else if (type === 'User') {
-      console.log('user resolver');
       return resolver(User, {
         before: (options, args) => {
-          console.log('user resolver before');
           options.where = options.where || {};
           options.where.id = { $in: args.ids };
           return options;
         },
       });
       // return getUser(id);
+    } else if (type === 'Comment') {
+      return resolver(Comment, {
+        before: (options, args) => {
+          options.where = options.where || {};
+          options.where.id = { $in: args.ids };
+          return options;
+        },
+      });
     }
     return null;
   },
@@ -112,10 +79,42 @@ const { nodeInterface, nodeField } = nodeDefinitions(
       return GraphQLPost;
     } else if (obj instanceof User) {
       return GraphQLUser;
+    } else if (obj instanceof Comment) {
+      return GraphQLComment;
     }
     return null;
   }
 );
+
+
+const GraphQLComment = new GraphQLObjectType({
+  name: 'Comment',
+  description: 'A comment on a post',
+  fields: {
+    id: globalIdField('Comment'),
+    text: {
+      type: GraphQLString,
+      description: 'the content of the comment',
+      resolve: (comment) => comment.text,
+    },
+    // commenter: {
+    //   type: GraphQLUser,
+    //   resolve: async(comment) => {
+    //     const user = await comment.getCommenter();
+    //     return user.get();
+    //   },
+    // },
+  },
+});
+
+
+const {
+  connectionType: CommentConnection,
+  edgeType: CommentEdge,
+} = connectionDefinitions({
+  name: 'Comment',
+  nodeType: GraphQLComment,
+});
 
 const GraphQLPost = new GraphQLObjectType({
   name: 'Post',
@@ -125,7 +124,26 @@ const GraphQLPost = new GraphQLObjectType({
     text: {
       type: GraphQLString,
       description: 'the content of the post',
-      resolve: (obj) => console.log('obj', obj) || obj.text,
+      resolve: (post) => post.text,
+    },
+    comments: {
+      type: CommentConnection,
+      args: connectionArgs,
+      resolve: async(p, args) => {
+        console.log('p', p);
+        const post = await Post.findById(p.id);
+        let comments = await post.getComments();
+        comments = comments.map(c => c.get());
+        return connectionFromArray(comments, args);
+      },
+    },
+    commentCount: {
+      type: GraphQLInt,
+      resolve: async(p) => {
+        const post = await Post.findById(p.id);
+        const comments = await post.getComments();
+        return comments.length;
+      },
     },
   },
   interfaces: [nodeInterface],
@@ -154,7 +172,7 @@ const GraphQLUser = new GraphQLObjectType({
       resolve: async(user, args) => {
         let posts = await user.getPosts();
         posts = posts.map(post => post.get());
-        console.log('posts', posts);
+        // console.log('posts', posts);
         return connectionFromArray(posts, args);
       }
     },
@@ -169,14 +187,13 @@ const GraphQLUser = new GraphQLObjectType({
       type: GraphQLInt,
       resolve: async(user, args) => {
         const posts = await user.getPosts();
-        console.log('posts', posts);
+        // console.log('posts', posts);
         return posts.length;
       },
     },
   },
   interfaces: [nodeInterface],
 });
-
 
 const Root = new GraphQLObjectType({
   name: 'Root',

@@ -1,3 +1,4 @@
+/* eslint-disable consistent-return */
 import express from 'express';
 // import bodyParser from 'body-parser';
 import logger from 'morgan';
@@ -5,7 +6,7 @@ import PrettyError from 'pretty-error';
 import graphQLHTTP from 'express-graphql';
 
 import { schema } from '../data/schema';
-import { User, Post } from '../models';
+import { User, Post, Comment } from '../models';
 // import routes from './routes';
 
 //
@@ -62,6 +63,21 @@ app.get('/newpost', async(req, res) => {
   }
 });
 
+app.get('/comment', async(req, res) => {
+  try {
+    const { id, text } = req.query;
+    const user = await User.findById(1);
+    const post = await Post.findById(id);
+
+    const comment = await Comment.create({ text });
+    await comment.setCommenter(user);
+    await post.addComments(comment);
+    return res.sendStatus(200);
+  } catch (e) {
+    if (e) throw e;
+  }
+});
+
 app.get('/users', async(req, res) => {
   try {
     const users = await User.findAll({
@@ -70,6 +86,16 @@ app.get('/users', async(req, res) => {
         model: Post,
         as: 'posts',
         attributes: ['id', 'text'],
+        include: [{
+          model: Comment,
+          as: 'comments',
+          attributes: ['id', 'text'],
+          include: [{
+            model: User,
+            as: 'commenter',
+            attributes: ['id', 'email', 'username', 'name'],
+          }],
+        }],
       }],
     });
     return res

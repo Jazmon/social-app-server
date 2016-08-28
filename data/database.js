@@ -1,4 +1,72 @@
-// /* eslint-disable arrow-body-style */
+/* eslint-disable arrow-body-style, consistent-return */
+import { Post, User, Comment } from '../models';
+
+//
+// Post methods
+// -------------------------
+export const getPosts = async() => {
+  try {
+    const posts = await Post.findAll();
+    const postObjs = posts.map(post => post.get());
+
+    return postObjs;
+  } catch (e) {
+    if (e) throw e;
+  }
+};
+
+export const getPost = async(id) => {
+  try {
+    const post = await Post.findById(id);
+    return post.get();
+  } catch (e) {
+    if (e) throw e;
+  }
+};
+
+//
+// Comment methods
+// -------------------------
+export const getComment = async(id) => {
+  try {
+    const comment = await Comment.findById(id);
+    return comment.get();
+  } catch (e) {
+    if (e) throw e;
+  }
+};
+
+export const getComments = async() => {
+  try {
+    const comments = await Comment.findAll();
+    const commentObjs = comments.map(comment => comment.get());
+
+    return commentObjs;
+  } catch (e) {
+    if (e) throw e;
+  }
+};
+
+//
+// User methods
+// -------------------------
+export const getUser = async(id) => {
+  try {
+    const user = await User.findById(id, {
+      attributes: ['id', 'email', 'username', 'name'],
+      include: [{
+        model: Post,
+        as: 'posts',
+        attributes: ['id', 'text'],
+      }],
+    });
+    return user.get();
+  } catch (e) {
+    if (e) throw e;
+  }
+};
+
+
 // // import {
 // //   // User,
 // //   Post,
