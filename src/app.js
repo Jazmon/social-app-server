@@ -23,6 +23,9 @@ if (process.env.NODE_ENV !== 'test') app.use(logger('combined'));
 // --------------------------
 // app.use('/api/v1/event', routes);
 
+const min = 6;
+const max = 12;
+
 app.use('/graphql', graphQLHTTP({ schema, pretty: true, graphiql: true }));
 
 app.get('/createdummy', async(req, res) => {
@@ -36,11 +39,46 @@ app.get('/createdummy', async(req, res) => {
     name: 'foo bar',
   });
 
-  await user.addPost(post);
+  console.log('user.addPosts type: ', typeof user.addPosts);
+  await user.addPosts(post);
 
   user.save()
     .then(() => res.sendStatus(200))
     .catch(err => { throw err; });
+});
+
+app.get('/newpost', async(req, res) => {
+  try {
+    const user = await User.findById(1);
+    const post = await Post.create({
+      text: req.query.text
+        || (Math.floor(Math.random() * (max - min)) + min),
+    });
+
+    await user.addPosts(post);
+    return res.sendStatus(200);
+  } catch (e) {
+    if (e) throw e;
+  }
+});
+
+app.get('/users', async(req, res) => {
+  try {
+    const users = await User.findAll({
+      attributes: ['id', 'email', 'username', 'name'],
+      include: [{
+        model: Post,
+        as: 'posts',
+        attributes: ['id', 'text'],
+      }],
+    });
+    return res
+      .status(200)
+      .type('json')
+      .send(JSON.stringify(users, null, '  '));
+  } catch (e) {
+    if (e) throw e;
+  }
 });
 
 //
